@@ -14,16 +14,16 @@ import os
 import numpy as np
 import subprocess
 
-from matscipy.calculators.eam import EAM
-from matscipy.dislocation import get_elastic_constants
+from lammps import lammps
 
 # =============================================================
 # PATH SETTINGS
 # =============================================================
 # Base directories
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '000_data'))
-STAGE_DATA_DIR = os.path.join(BASE_DIR, '01_input')
+INPUT_DIR = os.path.join(BASE_DIR, '01_input', 'Outputs')
 POTENTIALS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '00_potentials'))
+STAGE_DATA_DIR = os.path.abspath(os.path.join(BASE_DIR, '02_minimize'))
 OUTPUT_DIR = os.path.join(STAGE_DATA_DIR, 'output')
 DUMP_DIR = os.path.join(STAGE_DATA_DIR, 'dump')
 LOG_DIR = os.path.join(STAGE_DATA_DIR, 'logs')
@@ -38,34 +38,29 @@ POTENTIAL_FILE = os.path.join(POTENTIALS_DIR, 'malerba.fs')
 # =============================================================
 # SIMULATION PARAMETERS
 # =============================================================
-# Lattice dimensions (angstrom)
-X_MIN = 100  # LENGTH ALONG X
-Y_MIN = 30  # LENGTH ALONG Y
-Z_MIN = 40  # LENGTH ALONG Z
 
 # =============================================================
 # MAIN FUNCTION
 # =============================================================
 def main():
-    # ---------------------------
-    # Load EAM potential
-    # ---------------------------
-    eam_calc = EAM(POTENTIAL_FILE)
 
-    # Get lattice constant and elastic constants for Fe
-    alat, C11, C12, C44 = get_elastic_constants(calculator=eam_calc, symbol="Fe", verbose=True)
+    lmp = lammps()
 
-    # ---------------------------
-    # Define dislocation
-    # ---------------------------
+    # ---------- Initialize Simulation ------------------------
+    lmp.cmd.clear()
+    lmp.cmd.log(os.path.join(LOG_DIR, 'log.lammps'))
 
-    subprocess.run(['atomsk', '--create', 'bcc', str(alat), 'Fe', 'orient', '[111]', '[1-10]', '[11-2]', 'Fe_unitcell.cfg'])
+    lmp.cmd.units('metal')
+    lmp.cmd.dimension(3)
+    lmp.cmd.boundary('p', 'f', 'p')
 
-    subprocess.run(['atomsk', 'Fe_unitcell.cfg', '-duplicate', str(X_MIN), str(Y_MIN), str(Z_MIN), '-deform', 'X', str(0.5/X_MIN), '0.0', 'bottom.cfg'])
+    lmp.cmd.read_data(os.path.join(INPUT_DIR))
 
-    subprocess.run(['atomsk', 'Fe_unitcell.cfg', '-duplicate', str(X_MIN+1), str(Y_MIN), str(Z_MIN), '-deform', 'X', str(-0.5/(X_MIN+1)), '0.0', 'top.cfg'])
 
-    subprocess.run(['atomsk', '--merge', 'Y', '2', 'bottom.cfg', 'top.cfg', 'Fe_edge_bicrystal.lmp'])
+
+
+
+    return None
 
 # =============================================================
 # FUNCTIONS
