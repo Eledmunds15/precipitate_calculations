@@ -3,8 +3,7 @@
 # Author: Ethan L. Edmunds
 # Version: v1.0
 # Description: Python script to produce input for precipitate calculations.
-# Note: Dislocation is aligned along X, glide plane along Y axis.
-# Run: apptainer exec --nv 00_envs/lmp.sif python 01_input/run.py
+# Note: Dislocation is aligned along Z, glide plane along X axis, climb plane is Y axis.
 # =============================================================
 
 # ---------------------------
@@ -20,20 +19,19 @@ from matscipy.dislocation import get_elastic_constants
 # =============================================================
 # PATH SETTINGS
 # =============================================================
-# Base directories
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '000_data'))
-STAGE_DATA_DIR = os.path.join(BASE_DIR, '01_input')
-POTENTIALS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '00_potentials'))
-OUTPUT_DIR = os.path.join(STAGE_DATA_DIR, 'output')
-DUMP_DIR = os.path.join(STAGE_DATA_DIR, 'dump')
-LOG_DIR = os.path.join(STAGE_DATA_DIR, 'logs')
 
-# Ensure output directories exist
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '000_data')) # Master data directory
+STAGE_DATA_DIR = os.path.abspath(os.path.join(BASE_DIR, '01_input')) # Stage data directory
+
+OUTPUT_DIR = os.path.join(STAGE_DATA_DIR, 'output') # Output folder
+DUMP_DIR = os.path.join(STAGE_DATA_DIR, 'dump') # Dump folder
+LOG_DIR = os.path.join(STAGE_DATA_DIR, 'logs') # Log folder
+
 for directory in [OUTPUT_DIR, DUMP_DIR, LOG_DIR]:
     os.makedirs(directory, exist_ok=True)
 
-# Input potential file
-POTENTIAL_FILE = os.path.join(POTENTIALS_DIR, 'malerba.fs')
+POTENTIALS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '00_potentials')) # Potentials Directory
+POTENTIAL_FILE = os.path.join(POTENTIALS_DIR, 'malerba.fs') # Potential file
 
 # =============================================================
 # SIMULATION PARAMETERS
