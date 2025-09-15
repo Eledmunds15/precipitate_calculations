@@ -146,9 +146,7 @@ def main():
     lmp.cmd.restart(RESTART_FREQ, RESTART_PATH)
 
     lmp.cmd.run(RUN_TIME)
-
-    lmp.cmd.close()
-
+    
     return None
 
 # =============================================================
