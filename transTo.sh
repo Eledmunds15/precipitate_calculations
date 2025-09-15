@@ -8,7 +8,7 @@ DEST_DIR="/mnt/parscratch/users/mtp24ele/precipitate_calculations/"
 
 # Use rsync for efficient transfer
 echo "Starting file transfer..."
-rsync -avz "$SOURCE_DIR" "$USER@$HOST:$DEST_DIR"
+rsync -avz --exclude=".git" "$SOURCE_DIR/" "$USER@$HOST:$DEST_DIR"
 
 # Check if the transfer was successful
 if [ $? -eq 0 ]; then
