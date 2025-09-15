@@ -3,8 +3,8 @@
 # Shell script to transfer sync 000_data with HPC
 USER="mtp24ele"
 HOST="stanage.shef.ac.uk"
-SOURCE_DIR="/home/Ethan/Projects/atom_sims/precipitate_sims/"
-DEST_DIR="/mnt/parscratch/users/mtp24ele/precipitate_sims/"
+SOURCE_DIR="/home/Ethan/Projects/atom_sims/precipitate_calculations/"
+DEST_DIR="/mnt/parscratch/users/mtp24ele/precipitate_calculations/"
 
 # Use rsync for efficient transfer
 echo "Starting file transfer..."
