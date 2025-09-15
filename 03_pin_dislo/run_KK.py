@@ -13,7 +13,6 @@
 import os
 import numpy as np
 import subprocess
-from mpi4py import MPI
 
 from lammps import lammps
 
@@ -59,12 +58,8 @@ RESTART_FREQ = 10000
 # MAIN FUNCTION
 # =============================================================
 def main():
-    # ---------- Initialize Simulation ------------------------
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    size = comm.Get_size()
 
-    lmp = lammps()
+    lmp = lammps(cmdargs=['-k', 'on', 'g', '1', '-sf', 'kk'])
 
     # ---------- Initialize Simulation ------------------------
     lmp.cmd.clear()
