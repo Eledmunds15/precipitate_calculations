@@ -50,10 +50,14 @@ DT = 0.001
 TEMPERATURE = 800
 SHEAR_VELOCITY = 0.02
 
-RUN_TIME = 100000
 THERMO_FREQ = 1000
 DUMP_FREQ = 1000
 RESTART_FREQ = 1000
+
+PIN_TIME = 20000
+RUN_TIME = 20000
+
+PD_NUM = 20
 
 # =============================================================
 # MAIN FUNCTION
@@ -99,6 +103,7 @@ def main():
     lmp.cmd.region('precipitate_reg', 'sphere', simBoxCenter[0], simBoxCenter[1], simBoxCenter[2], PRECIPITATE_RADIUS)
     lmp.cmd.region('top_surface_reg', 'block', 'INF', 'INF', (ymax-FIXED_SURFACE_DEPTH), 'INF', 'INF', 'INF')
     lmp.cmd.region('bottom_surface_reg', 'block', 'INF', 'INF', 'INF', (ymin+FIXED_SURFACE_DEPTH), 'INF', 'INF')
+    
 
     # Define Groups
     #--- Define Groups ---#
@@ -138,10 +143,12 @@ def main():
     DUMP_PATH = os.path.join(DUMP_DIR, 'dump_*')
     lmp.cmd.dump('1', 'all', 'custom', DUMP_FREQ, DUMP_PATH, 'id', 'x', 'y', 'z', 'c_peratom', 'c_stress[4]')
 
-    #--- Restart Files ---#
-    RESTART_PATH = os.path.join(RESTART_DIR, 'restart_*')
-    lmp.cmd.restart(RESTART_FREQ, RESTART_PATH)
+    lmp.cmd.run(PIN_TIME)
 
+    #--- Create Vacancies ---#
+    lmp.cmd.delete_atoms('random', 'count', PD_NUM, 'mobile_atoms', 'NULL', 12352)
+
+    #--- Run Again ---#
     lmp.cmd.run(RUN_TIME)
 
     return None
