@@ -1,3 +1,5 @@
 00_envs/lmp.sif
-000_*
+00_HPC
+000_data
+000_archived_data
 *.lammps
