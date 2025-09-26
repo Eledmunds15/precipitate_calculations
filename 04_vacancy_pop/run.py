@@ -22,7 +22,7 @@ from lammps import lammps
 # =============================================================
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '000_data')) # Master data directory
-STAGE_DATA_DIR = os.path.abspath(os.path.join(BASE_DIR, '03_pin_dislo')) # Stage data directory
+STAGE_DATA_DIR = os.path.abspath(os.path.join(BASE_DIR, '04_vacancy_pop')) # Stage data directory
 
 OUTPUT_DIR = os.path.join(STAGE_DATA_DIR, 'output') # Output folder
 DUMP_DIR = os.path.join(STAGE_DATA_DIR, 'dump') # Dump folder
@@ -32,8 +32,7 @@ RESTART_DIR = os.path.join(STAGE_DATA_DIR, 'restarts') # Restarts folder
 for directory in [OUTPUT_DIR, DUMP_DIR, LOG_DIR, RESTART_DIR]:
     os.makedirs(directory, exist_ok=True)
 
-INPUT_DIR = os.path.abspath(os.path.join(BASE_DIR, '02_minimize', 'output')) # Input directory
-INPUT_FILE = os.path.join(INPUT_DIR, 'output.lmp') # Input file
+INPUT_DIR = os.path.abspath(os.path.join(BASE_DIR, '03_minimize', 'output')) # Input directory
 
 POTENTIALS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '00_potentials')) # Potentials Directory
 POTENTIAL_FILE = os.path.join(POTENTIALS_DIR, 'malerba.fs') # Potential file
@@ -54,10 +53,13 @@ THERMO_FREQ = 1000
 DUMP_FREQ = 1000
 RESTART_FREQ = 1000
 
-PIN_TIME = 20000
-RUN_TIME = 20000
+PIN_TIME = 1000
+RUN_TIME = 1000
 
 PD_NUM = 20
+
+TIMESTEP = 20000 # The timestep of the dislocation configuration at which we want to start.
+INPUT_FILE = os.path.join(INPUT_DIR, f'restart_{TIMESTEP}') # Input file
 
 # =============================================================
 # MAIN FUNCTION
@@ -104,7 +106,6 @@ def main():
     lmp.cmd.region('top_surface_reg', 'block', 'INF', 'INF', (ymax-FIXED_SURFACE_DEPTH), 'INF', 'INF', 'INF')
     lmp.cmd.region('bottom_surface_reg', 'block', 'INF', 'INF', 'INF', (ymin+FIXED_SURFACE_DEPTH), 'INF', 'INF')
     
-
     # Define Groups
     #--- Define Groups ---#
     lmp.cmd.group('top_surface', 'region', 'top_surface_reg')
@@ -146,7 +147,8 @@ def main():
     lmp.cmd.run(PIN_TIME)
 
     #--- Create Vacancies ---#
-    lmp.cmd.delete_atoms('random', 'count', PD_NUM, 'mobile_atoms', 'NULL', 12352)
+    lmp.cmd.delete_atoms('random', 'count', PD_NUM, 'no', 'mobile_atoms', 'NULL', 12352)
+    lmp.cmd.minimize(1e-6, 1e-8, 1000, 10000)
 
     #--- Run Again ---#
     lmp.cmd.run(RUN_TIME)
