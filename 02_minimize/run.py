@@ -4,7 +4,6 @@
 # Version: v1.0
 # Description: Python script to produce input for precipitate calculations.
 # Note: Dislocation is aligned along X, glide plane along Y axis.
-# Run: apptainer exec --nv 00_envs/lmp.sif python 02_minimize/run.py
 # =============================================================
 
 # ---------------------------
