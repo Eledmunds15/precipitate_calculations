@@ -1,5 +1,5 @@
 # =============================================================
-# LAMMPS Dislocation-Precipitate Interaction Simulation
+# LAMMPS Monopole Input Generation
 # Author: Ethan L. Edmunds
 # Version: v1.0
 # Description: Python script to produce input for precipitate calculations.
@@ -13,7 +13,6 @@
 import os
 import numpy as np
 import subprocess
-from mpi4py import MPI
 
 from lammps import lammps
 
@@ -43,28 +42,24 @@ POTENTIAL_FILE = os.path.join(POTENTIALS_DIR, 'malerba.fs') # Potential file
 # =============================================================
 
 PRECIPITATE_RADIUS = 25
-DISLOCATION_INITIAL_DISPLACEMENT = 20 # Distance from the precipitate in Angstroms
+DISLOCATION_INITIAL_DISPLACEMENT = 10 # Distance from the precipitate in Angstroms
 FIXED_SURFACE_DEPTH = 5 # Depth of the fixed surface in Angstroms
 
 DT = 0.001
 TEMPERATURE = 800
-SHEAR_VELOCITY = 0.02
+SHEAR_VELOCITY = 1
 
-RUN_TIME = 100000
+RUN_TIME = 100
 THERMO_FREQ = 1000
 DUMP_FREQ = 1000
-RESTART_FREQ = 1000
+RESTART_FREQ = 10000
 
 # =============================================================
 # MAIN FUNCTION
 # =============================================================
 def main():
-    # ---------- Initialize Simulation ------------------------
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    size = comm.Get_size()
 
-    lmp = lammps()
+    lmp = lammps(cmdargs=['-k', 'on', 'g', '1', '-sf', 'kk'])
 
     # ---------- Initialize Simulation ------------------------
     lmp.cmd.clear()
@@ -113,6 +108,14 @@ def main():
     lmp.cmd.compute('temp_compute', 'all', 'temp')
     lmp.cmd.compute('press_comp', 'all', 'pressure', 'temp_compute')
 
+    #lmp.cmd.compute('precipitate_force_x', 'precipitate', 'reduce', 'sum', 'fx')
+    #lmp.cmd.compute('precipitate_force_y', 'precipitate', 'reduce', 'sum', 'fy')
+    #lmp.cmd.compute('precipitate_force_z', 'precipitate', 'reduce', 'sum', 'fz')
+
+    #lmp.cmd.compute('precipitate_velocity_x', 'precipitate', 'reduce', 'sum', 'vx')
+    #lmp.cmd.compute('precipitate_velocity_y', 'precipitate', 'reduce', 'sum', 'vy')
+    #lmp.cmd.compute('precipitate_velocity_z', 'precipitate', 'reduce', 'sum', 'vz')
+
     #--- Define Fixes and Velocities ---#
     lmp.cmd.fix('1', 'all', 'nvt', 'temp', TEMPERATURE, TEMPERATURE, 100.0*DT)
     
@@ -143,7 +146,7 @@ def main():
     lmp.cmd.restart(RESTART_FREQ, RESTART_PATH)
 
     lmp.cmd.run(RUN_TIME)
-
+    
     return None
 
 # =============================================================
