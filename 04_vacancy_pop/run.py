@@ -32,7 +32,7 @@ RESTART_DIR = os.path.join(STAGE_DATA_DIR, 'restarts') # Restarts folder
 for directory in [OUTPUT_DIR, DUMP_DIR, LOG_DIR, RESTART_DIR]:
     os.makedirs(directory, exist_ok=True)
 
-INPUT_DIR = os.path.abspath(os.path.join(BASE_DIR, '03_minimize', 'output')) # Input directory
+INPUT_DIR = os.path.abspath(os.path.join(BASE_DIR, '03_pin_dislo', 'restarts')) # Input directory
 
 POTENTIALS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '00_potentials')) # Potentials Directory
 POTENTIAL_FILE = os.path.join(POTENTIALS_DIR, 'malerba.fs') # Potential file
@@ -47,14 +47,13 @@ FIXED_SURFACE_DEPTH = 5 # Depth of the fixed surface in Angstroms
 
 DT = 0.001
 TEMPERATURE = 800
-SHEAR_VELOCITY = 0.02
 
 THERMO_FREQ = 1000
 DUMP_FREQ = 1000
 RESTART_FREQ = 1000
 
-PIN_TIME = 1000
-RUN_TIME = 1000
+PIN_TIME = 20000
+RUN_TIME = 3436000
 
 PD_NUM = 20
 
@@ -99,7 +98,6 @@ def main():
 
     # Displace atoms
     lmp.cmd.group('all', 'type', '1')
-    lmp.cmd.displace_atoms('all', 'move', PRECIPITATE_RADIUS+DISLOCATION_INITIAL_DISPLACEMENT, 0, 0, 'units', 'box')
 
     # Create Regions
     lmp.cmd.region('precipitate_reg', 'sphere', simBoxCenter[0], simBoxCenter[1], simBoxCenter[2], PRECIPITATE_RADIUS)
@@ -112,6 +110,10 @@ def main():
     lmp.cmd.group('bottom_surface', 'region', 'bottom_surface_reg')
     lmp.cmd.group('precipitate', 'region', 'precipitate_reg')
     lmp.cmd.group('mobile_atoms', 'subtract', 'all', 'precipitate', 'top_surface', 'bottom_surface')
+
+    #--- Create Vacancies ---#
+    lmp.cmd.delete_atoms('random', 'count', PD_NUM, 'no', 'mobile_atoms', 'NULL', 12352)
+    lmp.cmd.minimize(1e-6, 1e-8, 1000, 10000)
 
     #--- Define Computes ---#
     lmp.cmd.compute('peratom', 'all', 'pe/atom')
@@ -127,8 +129,8 @@ def main():
     # Define fixes and forces for the top and bottom surfaces
     lmp.cmd.fix('top_surface_freeze', 'top_surface', 'setforce', 0.0, 0.0, 0.0)
     lmp.cmd.fix('bottom_surface_freeze', 'bottom_surface', 'setforce', 0.0, 0.0, 0.0)
-    lmp.cmd.velocity('top_surface', 'set', -(SHEAR_VELOCITY/2), 0.0, 0.0)
-    lmp.cmd.velocity('bottom_surface', 'set', (SHEAR_VELOCITY/2), 0.0, 0.0)
+    lmp.cmd.velocity('top_surface', 'set', 0, 0.0, 0.0)
+    lmp.cmd.velocity('bottom_surface', 'set', 0, 0.0, 0.0)
 
     lmp.cmd.fix('precipitate_freeze', 'precipitate', 'setforce', 0.0, 0.0, 0.0)
     lmp.cmd.velocity('precipitate', 'set', 0.0, 0.0, 0.0)
@@ -144,13 +146,6 @@ def main():
     DUMP_PATH = os.path.join(DUMP_DIR, 'dump_*')
     lmp.cmd.dump('1', 'all', 'custom', DUMP_FREQ, DUMP_PATH, 'id', 'x', 'y', 'z', 'c_peratom', 'c_stress[4]')
 
-    lmp.cmd.run(PIN_TIME)
-
-    #--- Create Vacancies ---#
-    lmp.cmd.delete_atoms('random', 'count', PD_NUM, 'no', 'mobile_atoms', 'NULL', 12352)
-    lmp.cmd.minimize(1e-6, 1e-8, 1000, 10000)
-
-    #--- Run Again ---#
     lmp.cmd.run(RUN_TIME)
 
     return None
